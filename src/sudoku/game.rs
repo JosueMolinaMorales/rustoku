@@ -24,7 +24,7 @@ impl Default for Screen {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq, Copy, Clone, Eq, PartialOrd, Ord)]
 pub enum Selection {
     #[default]
     NewGame,

@@ -40,38 +40,18 @@ impl App {
             sudoku::Screen::Menu(selection) => selection,
             _ => return,
         };
+        let index = MENU_SELECTION
+            .iter()
+            .position(|&s| s == *selection)
+            .unwrap();
         match action {
-            MenuAction::Select => match selection {
-                sudoku::Selection::NewGame => {
-                    self.screen = sudoku::Screen::Game;
-                }
-                sudoku::Selection::Continue => {}
-                sudoku::Selection::Quit => {
-                    self.should_quit = true;
-                }
-            },
-            MenuAction::MoveUp => match selection {
-                sudoku::Selection::NewGame => {
-                    self.screen = sudoku::Screen::Menu(sudoku::Selection::Quit);
-                }
-                sudoku::Selection::Continue => {
-                    self.screen = sudoku::Screen::Menu(sudoku::Selection::NewGame);
-                }
-                sudoku::Selection::Quit => {
-                    self.screen = sudoku::Screen::Menu(sudoku::Selection::Continue);
-                }
-            },
-            MenuAction::MoveDown => match selection {
-                sudoku::Selection::NewGame => {
-                    self.screen = sudoku::Screen::Menu(sudoku::Selection::Continue);
-                }
-                sudoku::Selection::Continue => {
-                    self.screen = sudoku::Screen::Menu(sudoku::Selection::Quit);
-                }
-                sudoku::Selection::Quit => {
-                    self.screen = sudoku::Screen::Menu(sudoku::Selection::NewGame);
-                }
-            },
+            MenuAction::MoveUp => {
+                self.screen = sudoku::Screen::Menu(MENU_SELECTION[(index + 1) % 3]);
+            }
+            MenuAction::MoveDown => {
+                self.screen = sudoku::Screen::Menu(MENU_SELECTION[(index + 2) % 3]);
+            }
+            MenuAction::Select => {}
         }
     }
 }
