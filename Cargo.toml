@@ -1,0 +1,19 @@
+[package]
+name = "rustoku"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "rustoku"
+path = "src/main.rs"
+
+[lib]
+name = "rustoku"
+path = "src/lib.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.75"
+crossterm = "0.27.0"
+ratatui = "0.24.0"
