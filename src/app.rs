@@ -51,7 +51,13 @@ impl App {
             MenuAction::MoveDown => {
                 self.screen = sudoku::Screen::Menu(MENU_SELECTION[(index + 2) % 3]);
             }
-            MenuAction::Select => {}
+            MenuAction::Select => {
+                self.screen = match *selection {
+                    sudoku::Selection::NewGame => sudoku::Screen::Game,
+                    sudoku::Selection::Continue => sudoku::Screen::Game,
+                    sudoku::Selection::Quit => sudoku::Screen::GameOver(false),
+                }
+            }
         }
     }
 }

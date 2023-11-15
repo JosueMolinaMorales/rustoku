@@ -19,7 +19,35 @@ pub fn update(app: &mut App, key_event: KeyEvent) {
     };
 }
 
-pub fn update_game(app: &mut App, key_event: KeyEvent) {}
+pub fn update_game(app: &mut App, key_event: KeyEvent) {
+    match key_event.code {
+        KeyCode::Char('j') | KeyCode::Down => app.game.select(
+            app.game.selected.0,
+            app.game.selected.1.checked_sub(1).unwrap_or(8),
+        ),
+        KeyCode::Char('k') | KeyCode::Up => app
+            .game
+            .select(app.game.selected.0, (app.game.selected.1 + 1) % 9),
+        KeyCode::Char('h') | KeyCode::Left => app.game.select(
+            app.game.selected.0.checked_sub(1).unwrap_or(8),
+            app.game.selected.1,
+        ),
+        KeyCode::Char('l') | KeyCode::Right => app
+            .game
+            .select((app.game.selected.0 + 1) % 9, app.game.selected.1),
+        KeyCode::Char('1') => app.game.set(app.game.selected.0, app.game.selected.1, 1),
+        KeyCode::Char('2') => app.game.set(app.game.selected.0, app.game.selected.1, 2),
+        KeyCode::Char('3') => app.game.set(app.game.selected.0, app.game.selected.1, 3),
+        KeyCode::Char('4') => app.game.set(app.game.selected.0, app.game.selected.1, 4),
+        KeyCode::Char('5') => app.game.set(app.game.selected.0, app.game.selected.1, 5),
+        KeyCode::Char('6') => app.game.set(app.game.selected.0, app.game.selected.1, 6),
+        KeyCode::Char('7') => app.game.set(app.game.selected.0, app.game.selected.1, 7),
+        KeyCode::Char('8') => app.game.set(app.game.selected.0, app.game.selected.1, 8),
+        KeyCode::Char('9') => app.game.set(app.game.selected.0, app.game.selected.1, 9),
+        KeyCode::Backspace => app.game.set(app.game.selected.0, app.game.selected.1, 0),
+        _ => {}
+    }
+}
 
 pub fn update_menu(app: &mut App, key_event: KeyEvent) {
     match key_event.code {

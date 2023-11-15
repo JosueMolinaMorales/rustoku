@@ -3,7 +3,10 @@ use ratatui::{
     prelude::{Alignment, Frame},
     style::{Color, Modifier, Style},
     text::{Line, Span, Text},
-    widgets::{Block, BorderType, Borders, Paragraph},
+    widgets::{
+        canvas::{Canvas, Context, Line as CanvasLine, Map, MapResolution, Rectangle},
+        Block, BorderType, Borders, Cell, Paragraph, Row, Table,
+    },
 };
 
 use crate::{
@@ -49,7 +52,7 @@ pub fn render(app: &mut App, f: &mut Frame) {
     // Render app content
     match &app.screen {
         Screen::Menu(selection) => render_main_menu(f, chunks[1], &selection),
-        Screen::Game => render_game(app, f),
+        Screen::Game => render_game(app, f, chunks[1]),
         Screen::GameOver(_) => render_game_over(),
     }
 
@@ -181,7 +184,134 @@ fn render_main_menu(f: &mut Frame, area: Rect, selection: &sudoku::Selection) {
 
 fn render_game_over() {}
 
-fn render_game(app: &mut App, f: &mut Frame) {}
+const SIZE: usize = 9;
+const CELL_SIZE: f64 = 5.0;
+fn draw_sudoku_board(ctx: &mut Context, app: &App) {
+    // Draw the Sudoku grid
+    ctx.draw(&Map {
+        resolution: MapResolution::High,
+        color: Color::White,
+    });
+
+    // Draw Sudoku grid lines
+    for i in 1..SIZE {
+        let offset = i as f64 * CELL_SIZE;
+        ctx.draw(&CanvasLine {
+            x1: offset,
+            y1: 0.0,
+            x2: offset,
+            y2: SIZE as f64 * CELL_SIZE,
+            color: Color::Gray,
+        });
+
+        ctx.draw(&CanvasLine {
+            x1: 0.0,
+            y1: offset,
+            x2: SIZE as f64 * CELL_SIZE,
+            y2: offset,
+            color: Color::Gray,
+        });
+    }
+
+    // Draw Sudoku 3x3 blocks
+    for i in 0..SIZE + 1 {
+        for j in 0..SIZE + 1 {
+            if i % 3 == 0 && j % 3 == 0 {
+                ctx.draw(&Rectangle {
+                    x: i as f64 * CELL_SIZE,
+                    y: j as f64 * CELL_SIZE,
+                    width: CELL_SIZE * 3.0,
+                    height: CELL_SIZE * 3.0,
+                    color: Color::White,
+                });
+            }
+        }
+    }
+
+    // Draw the selected cell
+    ctx.draw(&Rectangle {
+        x: (app.game.selected.0) as f64 * CELL_SIZE,
+        y: (app.game.selected.1) as f64 * CELL_SIZE,
+        width: CELL_SIZE,
+        height: CELL_SIZE,
+        color: Color::Red,
+    });
+}
+
+fn draw_numbers_into_board(ctx: &mut Context, app: &App) {
+    for i in 0..SIZE {
+        for j in 0..SIZE {
+            if app.game.get(i, j) == 0 {
+                continue;
+            }
+            ctx.print(
+                i as f64 * CELL_SIZE + CELL_SIZE / 2.0,
+                j as f64 * CELL_SIZE + CELL_SIZE / 2.0,
+                app.game.get(i, j).to_string(),
+            );
+        }
+    }
+}
+
+/// Renders the game
+/// # Arguments
+/// * `app` - The application
+/// * `f` - The frame
+/// * `area` - The area to render the game in
+fn render_game(app: &mut App, f: &mut Frame, area: Rect) {
+    let game_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(
+            [
+                // The top 80% of the screen is the game board
+                Constraint::Percentage(80),
+                // The bottom 20% of the screen is game info
+                Constraint::Percentage(20),
+            ]
+            .as_ref(),
+        )
+        .split(area);
+    let horizontal_padding_layout = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Percentage(10),
+            Constraint::Percentage(80),
+            Constraint::Percentage(10),
+        ])
+        .split(game_layout[0]);
+    let vertical_padding_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Percentage(10),
+            Constraint::Percentage(80),
+            Constraint::Percentage(10),
+        ])
+        .split(horizontal_padding_layout[1]);
+    let board = Canvas::default()
+        .block(Block::default())
+        .x_bounds([0.0, SIZE as f64 * CELL_SIZE])
+        .y_bounds([0.0, SIZE as f64 * CELL_SIZE])
+        .paint(|ctx| {
+            draw_sudoku_board(ctx, &app);
+            draw_numbers_into_board(ctx, &app);
+            // Add more drawing functions or components as needed
+        });
+
+    f.render_widget(board, vertical_padding_layout[1]);
+
+    // Render game info
+    let game_info = Paragraph::new(Text::styled(
+        "Game Info",
+        Style::default().fg(Color::LightGreen),
+    ))
+    .alignment(Alignment::Center)
+    .block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_type(BorderType::Rounded),
+    );
+    f.render_widget(game_info, game_layout[1]);
+}
 
 /// helper function to create a centered rect using up certain percentage of the available rect `r`
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
